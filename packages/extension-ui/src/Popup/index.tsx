@@ -33,6 +33,7 @@ import ImportQr from './ImportQr.js';
 import PhishingDetected from './PhishingDetected.js';
 import RestoreJson from './RestoreJson.js';
 import Welcome from './Welcome.js';
+import ImportCesium from './ImportCesium/index.js';
 
 const startSettings = uiSettings.get();
 
@@ -151,6 +152,7 @@ export default function Popup (): React.ReactElement {
                       <Switch>
                         <Route path='/auth-list'>{wrapWithErrorBoundary(<AuthList />, 'auth-list')}</Route>
                         <Route path='/account/create'>{wrapWithErrorBoundary(<CreateAccount />, 'account-creation')}</Route>
+                        <Route path='/account/import-cesium'>{wrapWithErrorBoundary(<ImportCesium />, 'import-cesium')}</Route>
                         <Route path='/account/forget/:address'>{wrapWithErrorBoundary(<Forget />, 'forget-address')}</Route>
                         <Route path='/account/export/:address'>{wrapWithErrorBoundary(<Export />, 'export-address')}</Route>
                         <Route path='/account/export-all'>{wrapWithErrorBoundary(<ExportAll />, 'export-all-address')}</Route>

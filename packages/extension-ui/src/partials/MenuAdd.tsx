@@ -49,6 +49,12 @@ function MenuAdd ({ className, reference }: Props): React.ReactElement<Props> {
           <span>{ t('Create new account')}</span>
         </Link>
       </MenuItem>
+      <MenuItem className='menuItem'>
+        <Link to='/account/import-cesium'>
+          <FontAwesomeIcon icon={faKey} />
+          <span>{t('Import Cesium wallet')}</span>
+        </Link>
+      </MenuItem>
       <MenuDivider />
       {!!master && (
         <>
