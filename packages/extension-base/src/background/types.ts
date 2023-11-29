@@ -82,6 +82,7 @@ export interface RequestSignatures {
   'pri(accounts.create.external)': [RequestAccountCreateExternal, boolean];
   'pri(accounts.create.hardware)': [RequestAccountCreateHardware, boolean];
   'pri(accounts.create.suri)': [RequestAccountCreateSuri, boolean];
+  'pri(accounts.create.cesium)': [RequestAccountCreateCesium, boolean];
   'pri(accounts.edit)': [RequestAccountEdit, boolean];
   'pri(accounts.export)': [RequestAccountExport, ResponseAccountExport];
   'pri(accounts.batchExport)': [RequestAccountBatchExport, ResponseAccountsExport]
@@ -196,6 +197,16 @@ export interface RequestAccountCreateSuri {
   suri: string;
   type?: KeypairType;
 }
+
+export interface RequestAccountCreateCesium {
+  name: string;
+  genesisHash?: HexString | null;
+  password: string;
+  csID: string;
+  csPwd: string;
+  type?: KeypairType;
+}
+
 
 export interface RequestAccountCreateHardware {
   accountIndex: number;

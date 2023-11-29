@@ -134,6 +134,10 @@ export async function createAccountSuri (name: string, password: string, suri: s
   return sendMessage('pri(accounts.create.suri)', { genesisHash, name, password, suri, type });
 }
 
+export async function createAccountCesium (name: string, password: string, csID: string, csPwd: string, type?: KeypairType, genesisHash?: HexString | null): Promise<boolean> {
+  return sendMessage('pri(accounts.create.cesium)', { genesisHash, name, password, csID, csPwd, type });
+}
+
 export async function createSeed (length?: SeedLengths, seed?: string, type?: KeypairType): Promise<{ address: string; seed: string }> {
   return sendMessage('pri(seed.create)', { length, seed, type });
 }
@@ -220,7 +224,6 @@ export async function validateSeed (suri: string, type?: KeypairType): Promise<{
 }
 
 export async function validateCesiumWallet (csID: string, csPwd: string, type?: KeypairType): Promise<{ address: string; csID: string; csPwd: string }> {
-  console.log('validateCesiumWallet !!');
   return sendMessage('pri(cesium.validate)', { csID, csPwd, type });
 }
 

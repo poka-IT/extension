@@ -8,7 +8,7 @@ import React, { useCallback, useContext, useEffect, useState } from 'react';
 import AccountNamePasswordCreation from '../../components/AccountNamePasswordCreation.js';
 import { AccountContext, ActionContext, Address } from '../../components/index.js';
 import { useMetadata, useTranslation } from '../../hooks/index.js';
-import { createAccountSuri } from '../../messaging.js';
+import { createAccountCesium } from '../../messaging.js';
 import { HeaderWithSteps } from '../../partials/index.js';
 import { DEFAULT_TYPE } from '../../util/defaultType.js';
 import CesiumIdPwd from './CesiumIdPwd.js';
@@ -16,7 +16,8 @@ import CesiumIdPwd from './CesiumIdPwd.js';
 export interface AccountInfo {
   address: string;
   genesis?: HexString;
-  suri: string;
+  csID: string;
+  csPwd: string;
 }
 
 function ImportCesium (): React.ReactElement {
@@ -47,7 +48,7 @@ function ImportCesium (): React.ReactElement {
     if (name && password && account) {
       setIsBusy(true);
 
-      createAccountSuri(name, password, account.suri, type, account.genesis)
+      createAccountCesium(name, password, account.csID, account.csPwd, 'ed25519', account.genesis)
         .then(() => onAction('/'))
         .catch((error): void => {
           setIsBusy(false);
