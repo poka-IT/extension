@@ -4,14 +4,12 @@
 import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { AccountInfo } from './index.js';
 
-import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { validateSeed } from '@polkadot/extension-ui/messaging';
+import { validateCesiumWallet } from '@polkadot/extension-ui/messaging';
 import { objectSpread } from '@polkadot/util';
 
-import { ButtonArea, Dropdown, InputWithLabel, NextStepButton, TextAreaWithLabel, VerticalSpace, Warning } from '../../components/index.js';
+import { ButtonArea, Dropdown, NextStepButton, TextAreaWithLabel, VerticalSpace, Warning } from '../../components/index.js';
 import { useGenesisHashOptions, useTranslation } from '../../hooks/index.js';
 import { styled } from '../../styled.js';
 
@@ -26,24 +24,21 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
   const { t } = useTranslation();
   const genesisOptions = useGenesisHashOptions();
   const [address, setAddress] = useState('');
-  const [seed, setSeed] = useState<string | null>(null);
-  const [path, setPath] = useState<string | null>(null);
-  const [advanced, setAdvances] = useState(false);
+  const [csID, setCsID] = useState<string | null>(null);
+  const [csPwd, setCsPwd] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [genesis, setGenesis] = useState('');
 
   useEffect(() => {
-    // No need to validate an empty seed
+    // No need to validate an empty ID or password
     // we have a dedicated error for this
-    if (!seed) {
+    if (!csID || !csPwd) {
       onAccountChange(null);
 
       return;
     }
 
-    const suri = `${seed || ''}${path || ''}`;
-
-    validateSeed(suri, type)
+    validateCesiumWallet(csID, csPwd, type)
       .then((validatedAccount) => {
         setError('');
         setAddress(validatedAccount.address);
@@ -54,36 +49,48 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
       .catch(() => {
         setAddress('');
         onAccountChange(null);
-        setError(path
-          ? t('Invalid mnemonic seed or derivation path')
-          : t('Invalid mnemonic seed')
+        setError(t('Invalid Cesium ID or password')
         );
       });
-  }, [t, genesis, seed, path, onAccountChange, type]);
-
-  const _onToggleAdvanced = useCallback(() => {
-    setAdvances(!advanced);
-  }, [advanced]);
+  }, [t, genesis, csID, csPwd, onAccountChange, type]);
 
   return (
     <>
       <div className={className}>
         <TextAreaWithLabel
-          className='seedInput'
+          className='CesiumIDInput'
           isError={!!error}
           isFocused
-          label={t('existing 12 or 24-word mnemonic seed')}
-          onChange={setSeed}
-          rowsCount={2}
-          value={seed || ''}
+          label={t('Your Cesium wallet ID (Ğ1v1)')}
+          onChange={setCsID}
+          rowsCount={1}
+          value={csID || ''}
         />
-        {!!error && !seed && (
+        {!!error && !csID && (
           <Warning
-            className='seedError'
+            className='CesiumIDError'
             isBelowInput
             isDanger
           >
-            {t('Mnemonic needs to contain 12, 15, 18, 21, 24 words')}
+            {t('Wrong Cesium wallet ID format')}
+          </Warning>
+        )}
+        <TextAreaWithLabel
+          className='CesiumPwdInput'
+          isError={!!error}
+          isFocused
+          label={t('Your Cesium wallet password (Ğ1v1)')}
+          onChange={setCsPwd}
+          rowsCount={1}
+          value={csPwd || ''}
+        />
+        {!!error && !csPwd && (
+          <Warning
+            className='CesiumPwdError'
+            isBelowInput
+            isDanger
+          >
+            {t('Wrong Cesium wallet password format')}
           </Warning>
         )}
         <Dropdown
@@ -93,29 +100,6 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
           options={genesisOptions}
           value={genesis}
         />
-        <div
-          className='advancedToggle'
-          onClick={_onToggleAdvanced}
-        >
-          <FontAwesomeIcon icon={advanced ? faCaretDown : faCaretRight} />
-          <span>{t('advanced')}</span>
-        </div>
-        { advanced && (
-          <InputWithLabel
-            className='derivationPath'
-            isError={!!path && !!error}
-            label={t('derivation path')}
-            onChange={setPath}
-            value={path || ''}
-          />
-        )}
-        {!!error && !!seed && (
-          <Warning
-            isDanger
-          >
-            {error}
-          </Warning>
-        )}
       </div>
       <VerticalSpace />
       <ButtonArea>
@@ -131,33 +115,29 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
 }
 
 export default styled(CesiumIdPwd)<Props>`
-  .advancedToggle {
-    color: var(--textColor);
-    cursor: pointer;
-    line-height: var(--lineHeight);
-    letter-spacing: 0.04em;
-    opacity: 0.65;
-    text-transform: uppercase;
-
-    > span {
-      font-size: var(--inputLabelFontSize);
-      margin-left: .5rem;
-      vertical-align: middle;
-    }
-  }
-
   .genesisSelection {
     margin-bottom: var(--fontSize);
   }
 
-  .seedInput {
+  .CesiumIDInput {
     margin-bottom: var(--fontSize);
     textarea {
       height: unset;
     }
   }
 
-  .seedError {
+  .CesiumIDError {
+    margin-bottom: 1rem;
+  }
+
+  .CesiumPwdInput {
+    margin-bottom: var(--fontSize);
+    textarea {
+      height: unset;
+    }
+  }
+
+  .CesiumPwdError {
     margin-bottom: 1rem;
   }
 `;

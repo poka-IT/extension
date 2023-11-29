@@ -113,6 +113,7 @@ export interface RequestSignatures {
   'pri(ping)': [null, boolean];
   'pri(seed.create)': [RequestSeedCreate, ResponseSeedCreate];
   'pri(seed.validate)': [RequestSeedValidate, ResponseSeedValidate];
+  'pri(cesium.validate)': [RequestCesiumValidate, ResponseCesiumValidate];
   'pri(settings.notification)': [string, boolean];
   'pri(signing.approve.password)': [RequestSigningApprovePassword, boolean];
   'pri(signing.approve.signature)': [RequestSigningApproveSignature, boolean];
@@ -327,6 +328,13 @@ export interface RequestSeedValidate {
   type?: KeypairType;
 }
 
+export interface RequestCesiumValidate {
+  csID: string;
+  csPwd: string;
+  type?: KeypairType;
+}
+
+
 // Responses
 
 export type ResponseTypes = {
@@ -373,6 +381,12 @@ export interface ResponseSeedCreate {
 export interface ResponseSeedValidate {
   address: string;
   suri: string;
+}
+
+export interface ResponseCesiumValidate {
+  address: string;
+  csID: string;
+  csPwd: string;
 }
 
 export interface ResponseAccountExport {

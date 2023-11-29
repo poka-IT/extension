@@ -177,5 +177,10 @@
   "App \"{{network}}\" does not seem to be open": "",
   "Ledger error: {{errorMessage}}": "",
   "Import Cesium wallet": "",
-  "Add the account with this Cesium ID": ""
+  "Add the account with this Cesium ID": "",
+  "Your Cesium wallet ID (Ğ1v1)": "",
+  "Wrong Cesium wallet ID format": "",
+  "Your Cesium wallet password (Ğ1v1)": "",
+  "Wrong Cesium wallet password format": "",
+  "Invalid Cesium ID or password": ""
 }

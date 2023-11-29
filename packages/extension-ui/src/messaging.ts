@@ -219,6 +219,11 @@ export async function validateSeed (suri: string, type?: KeypairType): Promise<{
   return sendMessage('pri(seed.validate)', { suri, type });
 }
 
+export async function validateCesiumWallet (csID: string, csPwd: string, type?: KeypairType): Promise<{ address: string; csID: string; csPwd: string }> {
+  console.log('validateCesiumWallet !!');
+  return sendMessage('pri(cesium.validate)', { csID, csPwd, type });
+}
+
 export async function validateDerivationPath (parentAddress: string, suri: string, parentPassword: string): Promise<ResponseDeriveValidate> {
   return sendMessage('pri(derivation.validate)', { parentAddress, parentPassword, suri });
 }

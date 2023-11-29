@@ -8,7 +8,7 @@ import type { KeyringPair, KeyringPair$Json, KeyringPair$Meta } from '@polkadot/
 import type { Registry, SignerPayloadJSON, SignerPayloadRaw } from '@polkadot/types/types';
 import type { SubjectInfo } from '@polkadot/ui-keyring/observable/types';
 import type { KeypairType } from '@polkadot/util-crypto/types';
-import type { AccountJson, AllowedPath, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountBatchExport, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestActiveTabsUrlUpdate, RequestAuthorizeApprove, RequestBatchRestore, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApprovePassword, RequestSigningApproveSignature, RequestSigningCancel, RequestSigningIsLocked, RequestTypes, RequestUpdateAuthorizedAccounts, ResponseAccountExport, ResponseAccountsExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseSigningIsLocked, ResponseType, SigningRequest } from '../types.js';
+import type { AccountJson, AllowedPath, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountBatchExport, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestActiveTabsUrlUpdate, RequestAuthorizeApprove, RequestBatchRestore, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestCesiumValidate, RequestSigningApprovePassword, RequestSigningApproveSignature, RequestSigningCancel, RequestSigningIsLocked, RequestTypes, RequestUpdateAuthorizedAccounts, ResponseAccountExport, ResponseAccountsExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseSigningIsLocked, ResponseType, SigningRequest, ResponseCesiumValidate } from '../types.js';
 import type { AuthorizedAccountsDiff } from './State.js';
 import type State from './State.js';
 
@@ -341,6 +341,29 @@ export default class Extension {
     };
   }
 
+  private cesiumValidate ({ csID, csPwd, type }: RequestCesiumValidate): ResponseCesiumValidate {
+    //TODO: convert CS ID/PWD to seed and import it.
+
+    // const { phrase } = keyExtractSuri("voice scrub discover cook sock warm hundred link spawn net bleak laugh");
+
+    // if (isHex(phrase)) {
+    //   assert(isHex(phrase, 256), 'Hex seed needs to be 256-bits');
+    // } else {
+    //   // sadly isHex detects as string, so we need a cast here
+    //   assert(SEED_LENGTHS.includes((phrase).split(' ').length), `Mnemonic needs to contain ${SEED_LENGTHS.join(', ')} words`);
+    //   assert(mnemonicValidate(phrase), 'Not a valid mnemonic seed');
+    // }
+
+    console.log(type);
+
+    return {
+      address: "5CQ8T4qpbYJq7uVsxGPQ5q2df7x3Wa4aRY6HUWMBYjfLZhnn",
+      // address: keyring.createFromUri(getSuri(phrase, type), {}, type).address,
+      csID,
+      csPwd
+    };
+  }
+
   private signingApprovePassword ({ id, password, savePass }: RequestSigningApprovePassword): boolean {
     const queued = this.#state.getSignRequest(id);
 
@@ -636,6 +659,9 @@ export default class Extension {
 
       case 'pri(seed.validate)':
         return this.seedValidate(request as RequestSeedValidate);
+
+      case 'pri(cesium.validate)':
+        return this.cesiumValidate(request as RequestCesiumValidate);
 
       case 'pri(settings.notification)':
         return this.#state.setNotification(request as string);
