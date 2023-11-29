@@ -8,7 +8,7 @@ import type { KeyringPair, KeyringPair$Json, KeyringPair$Meta } from '@polkadot/
 import type { Registry, SignerPayloadJSON, SignerPayloadRaw } from '@polkadot/types/types';
 import type { SubjectInfo } from '@polkadot/ui-keyring/observable/types';
 import type { KeypairType } from '@polkadot/util-crypto/types';
-import type { AccountJson, AllowedPath, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountBatchExport, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestActiveTabsUrlUpdate, RequestAuthorizeApprove, RequestBatchRestore, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApprovePassword, RequestSigningApproveSignature, RequestSigningCancel, RequestSigningIsLocked, RequestTypes, RequestUpdateAuthorizedAccounts, ResponseAccountExport, ResponseAccountsExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseSigningIsLocked, ResponseType, SigningRequest } from '../types.js';
+import type { AccountJson, AllowedPath, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountBatchExport, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestActiveTabsUrlUpdate, RequestAuthorizeApprove, RequestBatchRestore, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestCesiumValidate, RequestSigningApprovePassword, RequestSigningApproveSignature, RequestSigningCancel, RequestSigningIsLocked, RequestTypes, RequestUpdateAuthorizedAccounts, ResponseAccountExport, ResponseAccountsExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseSigningIsLocked, ResponseType, SigningRequest, ResponseCesiumValidate, RequestAccountCreateCesium } from '../types.js';
 import type { AuthorizedAccountsDiff } from './State.js';
 import type State from './State.js';
 
@@ -22,6 +22,7 @@ import { keyExtractSuri, mnemonicGenerate, mnemonicValidate } from '@polkadot/ut
 
 import { withErrorLog } from './helpers.js';
 import { createSubscription, unsubscribe } from './subscriptions.js';
+import { syncScrypt } from 'scrypt-js';
 
 type CachedUnlocks = Record<string, number>;
 
@@ -72,6 +73,24 @@ export default class Extension {
 
   private accountsCreateSuri ({ genesisHash, name, password, suri, type }: RequestAccountCreateSuri): boolean {
     keyring.addUri(getSuri(suri, type), password, { genesisHash, name }, type);
+
+    return true;
+  }
+
+  private accountsCreateCesium ({ genesisHash, name, password, csID, csPwd, type }: RequestAccountCreateCesium): boolean {
+    //TODO 2
+    const bytecsID = new TextEncoder().encode(csID);
+    const bytecsPwd = new TextEncoder().encode(csPwd);
+
+    const N = 4096;
+    const r = 16;
+    const p = 1;
+    const dkLen = 32;
+    const seedArray = syncScrypt(bytecsPwd, bytecsID, N, r, p, dkLen);
+    const seedString = Buffer.from(seedArray).toString("hex")
+    const seedHex = '0x' + seedString;
+
+    keyring.addUri(seedHex, password, { genesisHash, name }, type);
 
     return true;
   }
@@ -341,6 +360,32 @@ export default class Extension {
     };
   }
 
+  private cesiumValidate ({ csID, csPwd, type }: RequestCesiumValidate): ResponseCesiumValidate {
+    //TODO: convert CS ID/PWD to seed and import it.
+
+    const bytecsID = new TextEncoder().encode(csID);
+    const bytecsPwd = new TextEncoder().encode(csPwd);
+
+    const N = 4096;
+    const r = 16;
+    const p = 1;
+    const dkLen = 32;
+    const seedArray = syncScrypt(bytecsPwd, bytecsID, N, r, p, dkLen);
+    const seedString = Buffer.from(seedArray).toString("hex")
+    const seedHex = '0x' + seedString;
+
+    console.log(seedHex);
+
+    assert(isHex(seedHex, 256), 'Hex seed needs to be 256-bits');
+
+
+    return {
+      address: keyring.createFromUri(seedHex, {}, type).address,
+      csID,
+      csPwd
+    };
+  }
+
   private signingApprovePassword ({ id, password, savePass }: RequestSigningApprovePassword): boolean {
     const queued = this.#state.getSignRequest(id);
 
@@ -537,7 +582,8 @@ export default class Extension {
   // Weird thought, the eslint override is not needed in Tabs
   // eslint-disable-next-line @typescript-eslint/require-await
   public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], port?: chrome.runtime.Port): Promise<ResponseType<TMessageType>> {
-    switch (type) {
+      console.log(type);
+      switch (type) {
       case 'pri(authorize.approve)':
         return this.authorizeApprove(request as RequestAuthorizeApprove);
 
@@ -564,6 +610,9 @@ export default class Extension {
 
       case 'pri(accounts.create.suri)':
         return this.accountsCreateSuri(request as RequestAccountCreateSuri);
+
+      case 'pri(accounts.create.cesium)':
+        return this.accountsCreateCesium(request as RequestAccountCreateCesium);
 
       case 'pri(accounts.changePassword)':
         return this.accountsChangePassword(request as RequestAccountChangePassword);
@@ -637,6 +686,9 @@ export default class Extension {
       case 'pri(seed.validate)':
         return this.seedValidate(request as RequestSeedValidate);
 
+      case 'pri(cesium.validate)':
+        return this.cesiumValidate(request as RequestCesiumValidate);
+
       case 'pri(settings.notification)':
         return this.#state.setNotification(request as string);
 
@@ -659,7 +711,7 @@ export default class Extension {
         return this.windowOpen(request as AllowedPath);
 
       default:
-        throw new Error(`Unable to handle message of type ${type}`);
+        throw new Error(`Unable to handle private message of type ${type}`);
     }
   }
 }

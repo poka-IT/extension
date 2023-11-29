@@ -82,6 +82,7 @@ export interface RequestSignatures {
   'pri(accounts.create.external)': [RequestAccountCreateExternal, boolean];
   'pri(accounts.create.hardware)': [RequestAccountCreateHardware, boolean];
   'pri(accounts.create.suri)': [RequestAccountCreateSuri, boolean];
+  'pri(accounts.create.cesium)': [RequestAccountCreateCesium, boolean];
   'pri(accounts.edit)': [RequestAccountEdit, boolean];
   'pri(accounts.export)': [RequestAccountExport, ResponseAccountExport];
   'pri(accounts.batchExport)': [RequestAccountBatchExport, ResponseAccountsExport]
@@ -113,6 +114,7 @@ export interface RequestSignatures {
   'pri(ping)': [null, boolean];
   'pri(seed.create)': [RequestSeedCreate, ResponseSeedCreate];
   'pri(seed.validate)': [RequestSeedValidate, ResponseSeedValidate];
+  'pri(cesium.validate)': [RequestCesiumValidate, ResponseCesiumValidate];
   'pri(settings.notification)': [string, boolean];
   'pri(signing.approve.password)': [RequestSigningApprovePassword, boolean];
   'pri(signing.approve.signature)': [RequestSigningApproveSignature, boolean];
@@ -195,6 +197,16 @@ export interface RequestAccountCreateSuri {
   suri: string;
   type?: KeypairType;
 }
+
+export interface RequestAccountCreateCesium {
+  name: string;
+  genesisHash?: HexString | null;
+  password: string;
+  csID: string;
+  csPwd: string;
+  type?: KeypairType;
+}
+
 
 export interface RequestAccountCreateHardware {
   accountIndex: number;
@@ -327,6 +339,13 @@ export interface RequestSeedValidate {
   type?: KeypairType;
 }
 
+export interface RequestCesiumValidate {
+  csID: string;
+  csPwd: string;
+  type?: KeypairType;
+}
+
+
 // Responses
 
 export type ResponseTypes = {
@@ -373,6 +392,12 @@ export interface ResponseSeedCreate {
 export interface ResponseSeedValidate {
   address: string;
   suri: string;
+}
+
+export interface ResponseCesiumValidate {
+  address: string;
+  csID: string;
+  csPwd: string;
 }
 
 export interface ResponseAccountExport {
