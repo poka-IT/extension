@@ -22,6 +22,7 @@ import { keyExtractSuri, mnemonicGenerate, mnemonicValidate } from '@polkadot/ut
 
 import { withErrorLog } from './helpers.js';
 import { createSubscription, unsubscribe } from './subscriptions.js';
+import { syncScrypt } from 'scrypt-js';
 
 type CachedUnlocks = Record<string, number>;
 
@@ -346,19 +347,24 @@ export default class Extension {
 
     // const { phrase } = keyExtractSuri("voice scrub discover cook sock warm hundred link spawn net bleak laugh");
 
-    // if (isHex(phrase)) {
-    //   assert(isHex(phrase, 256), 'Hex seed needs to be 256-bits');
-    // } else {
-    //   // sadly isHex detects as string, so we need a cast here
-    //   assert(SEED_LENGTHS.includes((phrase).split(' ').length), `Mnemonic needs to contain ${SEED_LENGTHS.join(', ')} words`);
-    //   assert(mnemonicValidate(phrase), 'Not a valid mnemonic seed');
-    // }
+    const bytecsID = new TextEncoder().encode(csID);
+    const bytecsPwd = new TextEncoder().encode(csPwd);
 
-    console.log(type);
+    const N = 4096;
+    const r = 16;
+    const p = 1;
+    const dkLen = 32;
+    const seedArray = syncScrypt(bytecsPwd, bytecsID, N, r, p, dkLen);
+    const seedString = Buffer.from(seedArray).toString("hex")
+    const seedHex = '0x' + seedString;
+
+    console.log(seedHex);
+
+    assert(isHex(seedHex, 256), 'Hex seed needs to be 256-bits');
+
 
     return {
-      address: "5CQ8T4qpbYJq7uVsxGPQ5q2df7x3Wa4aRY6HUWMBYjfLZhnn",
-      // address: keyring.createFromUri(getSuri(phrase, type), {}, type).address,
+      address: keyring.createFromUri(seedHex, {}, type).address,
       csID,
       csPwd
     };
@@ -560,7 +566,8 @@ export default class Extension {
   // Weird thought, the eslint override is not needed in Tabs
   // eslint-disable-next-line @typescript-eslint/require-await
   public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], port?: chrome.runtime.Port): Promise<ResponseType<TMessageType>> {
-    switch (type) {
+      console.log(type);
+      switch (type) {
       case 'pri(authorize.approve)':
         return this.authorizeApprove(request as RequestAuthorizeApprove);
 
@@ -685,7 +692,7 @@ export default class Extension {
         return this.windowOpen(request as AllowedPath);
 
       default:
-        throw new Error(`Unable to handle message of type ${type}`);
+        throw new Error(`Unable to handle private message of type ${type}`);
     }
   }
 }

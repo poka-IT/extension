@@ -84,7 +84,7 @@ function ImportCesium (): React.ReactElement {
           <CesiumIdPwd
             onAccountChange={setAccount}
             onNextStep={_onNextStep}
-            type={type}
+            type={'ed25519'}
           />
         )
         : (

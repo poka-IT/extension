@@ -78,7 +78,6 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
         <TextAreaWithLabel
           className='CesiumPwdInput'
           isError={!!error}
-          isFocused
           label={t('Your Cesium wallet password (Ğ1v1)')}
           onChange={setCsPwd}
           rowsCount={1}

@@ -268,7 +268,7 @@ export default class Tabs {
         return port && this.rpcUnsubscribe(request as RequestRpcUnsubscribe, port);
 
       default:
-        throw new Error(`Unable to handle message of type ${type}`);
+        throw new Error(`Unable to handle public message of type ${type}`);
     }
   }
 }
