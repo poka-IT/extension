@@ -4,7 +4,7 @@
 import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { AccountInfo } from './index.js';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { validateCesiumWallet } from '@polkadot/extension-ui/messaging';
 import { objectSpread } from '@polkadot/util';
@@ -20,6 +20,15 @@ interface Props {
   type: KeypairType;
 }
 
+function debounce<T extends (...args: any[]) => void>(func: T, waitFor: number): (...args: Parameters<T>) => void {
+  let timeout: number | undefined;
+
+  return function(...args: Parameters<T>): void {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), waitFor) as unknown as number;
+  };
+}
+
 function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): React.ReactElement {
   const { t } = useTranslation();
   const genesisOptions = useGenesisHashOptions();
@@ -28,16 +37,12 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
   const [csPwd, setCsPwd] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [genesis, setGenesis] = useState('');
+  const [isWaitingDebounce, setIsWaitingDebounce] = useState(false);
+  const operationIdRef = useRef(0);
 
-  useEffect(() => {
-    // No need to validate an empty ID or password
-    // we have a dedicated error for this
-    if (!csID || !csPwd) {
-      onAccountChange(null);
-
-      return;
-    }
-
+ 
+  const debouncedValidateCesiumWallet = useCallback(debounce((csID, csPwd) => {
+    const currentOpId = operationIdRef.current;
     validateCesiumWallet(csID, csPwd, type)
       .then((validatedAccount) => {
         setError('');
@@ -49,11 +54,27 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
       .catch(() => {
         setAddress('');
         onAccountChange(null);
-        setError(t('Invalid Cesium ID or password')
-        );
+        setError(t('Invalid Cesium ID or password'));
+      })
+      .finally(() => {
+        if (currentOpId === operationIdRef.current) {
+          setIsWaitingDebounce(false);
+        }
       });
-  }, [t, genesis, csID, csPwd, onAccountChange, type]);
-
+    }, 600), [type, t, genesis, setIsWaitingDebounce]);
+  
+    useEffect(() => {
+      if (!csID || !csPwd) {
+        onAccountChange(null);
+        setIsWaitingDebounce(false);
+        return;
+      }
+    
+      operationIdRef.current += 1;
+      setIsWaitingDebounce(true);
+      debouncedValidateCesiumWallet(csID, csPwd);
+    }, [csID, csPwd, debouncedValidateCesiumWallet]);
+  
   return (
     <>
       <div className={className}>
@@ -103,7 +124,7 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
       <VerticalSpace />
       <ButtonArea>
         <NextStepButton
-          isDisabled={!address || !!error}
+          isDisabled={!address || !!error || isWaitingDebounce}
           onClick={onNextStep}
         >
           {t('Next')}
