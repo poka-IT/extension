@@ -77,21 +77,8 @@ export default class Extension {
     return true;
   }
 
-  private accountsCreateCesium ({ genesisHash, name, password, csID, csPwd, type }: RequestAccountCreateCesium): boolean {
-    //TODO 2
-    const bytecsID = new TextEncoder().encode(csID);
-    const bytecsPwd = new TextEncoder().encode(csPwd);
-
-    const N = 4096;
-    const r = 16;
-    const p = 1;
-    const dkLen = 32;
-    const seedArray = syncScrypt(bytecsPwd, bytecsID, N, r, p, dkLen);
-    const seedString = Buffer.from(seedArray).toString("hex")
-    const seedHex = '0x' + seedString;
-
+  private accountsCreateCesium ({ genesisHash, name, password, seedHex, type }: RequestAccountCreateCesium): boolean {
     keyring.addUri(seedHex, password, { genesisHash, name }, type);
-
     return true;
   }
 
@@ -361,8 +348,6 @@ export default class Extension {
   }
 
   private cesiumValidate ({ csID, csPwd, type }: RequestCesiumValidate): ResponseCesiumValidate {
-    //TODO: convert CS ID/PWD to seed and import it.
-
     const bytecsID = new TextEncoder().encode(csID);
     const bytecsPwd = new TextEncoder().encode(csPwd);
 
@@ -374,15 +359,11 @@ export default class Extension {
     const seedString = Buffer.from(seedArray).toString("hex")
     const seedHex = '0x' + seedString;
 
-    console.log(seedHex);
-
     assert(isHex(seedHex, 256), 'Hex seed needs to be 256-bits');
-
 
     return {
       address: keyring.createFromUri(seedHex, {}, type).address,
-      csID,
-      csPwd
+      seedHex
     };
   }
 

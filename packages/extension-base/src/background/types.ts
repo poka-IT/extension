@@ -202,8 +202,7 @@ export interface RequestAccountCreateCesium {
   name: string;
   genesisHash?: HexString | null;
   password: string;
-  csID: string;
-  csPwd: string;
+  seedHex: string;
   type?: KeypairType;
 }
 
@@ -396,8 +395,7 @@ export interface ResponseSeedValidate {
 
 export interface ResponseCesiumValidate {
   address: string;
-  csID: string;
-  csPwd: string;
+  seedHex: string;
 }
 
 export interface ResponseAccountExport {

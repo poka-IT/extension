@@ -16,8 +16,7 @@ import CesiumIdPwd from './CesiumIdPwd.js';
 export interface AccountInfo {
   address: string;
   genesis?: HexString;
-  csID: string;
-  csPwd: string;
+  seedHex: string;
 }
 
 function ImportCesium (): React.ReactElement {
@@ -48,7 +47,7 @@ function ImportCesium (): React.ReactElement {
     if (name && password && account) {
       setIsBusy(true);
 
-      createAccountCesium(name, password, account.csID, account.csPwd, 'ed25519', account.genesis)
+      createAccountCesium(name, password, account.seedHex, 'ed25519', account.genesis)
         .then(() => onAction('/'))
         .catch((error): void => {
           setIsBusy(false);
