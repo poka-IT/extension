@@ -29,7 +29,7 @@
     "build:release": "polkadot-ci-ghact-build",
     "build:rollup": "polkadot-exec-rollup --config",
     "build:zip": "yarn build:zip:dst && yarn build:zip:src",
-    "build:zip:dst": "rm -rf ./master-build.zip && cd packages/extension/build && zip -r -FS ../../../master-build.zip .",
+    "build:zip:dst": "rm -rf ./polkafork-js.zip && cd packages/extension/build && zip -r -FS ../../../polkafork-js.zip .",
     "build:zip:src": "rm -rf ./master-src.zip && zip -r -x '*build/*' -x '*node_modules*' -FS ./master-src.zip packages .editorconfig .eslintignore .eslintrc.js babel.config.cjs CHANGELOG.md CONTRIBUTING.md i18next-scanner.config.js LICENSE package.json README.md tsconfig.json yarn.lock",
     "clean": "polkadot-dev-clean-build",
     "lint": "polkadot-dev-run-lint",
