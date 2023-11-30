@@ -20,10 +20,16 @@ interface Props {
 export default function TextAreaWithLabel ({ className, isError, isFocused, isReadOnly, label, onChange, rowsCount, value }: Props): React.ReactElement<Props> {
   const _onChange = useCallback(
     ({ target: { value } }: React.ChangeEvent<HTMLTextAreaElement>): void => {
-      onChange && onChange(value);
+  onChange && onChange(value);
     },
     [onChange]
   );
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault(); 
+    }
+  };
 
   return (
     <Label
@@ -41,6 +47,7 @@ export default function TextAreaWithLabel ({ className, isError, isFocused, isRe
         spellCheck={false}
         value={value}
         withError={isError}
+        onKeyDown={handleKeyDown}
       />
     </Label>
   );

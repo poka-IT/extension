@@ -182,5 +182,6 @@
   "Wrong Cesium wallet ID format": "",
   "Your Cesium wallet password (Ğ1v1)": "",
   "Wrong Cesium wallet password format": "",
-  "Invalid Cesium ID or password": ""
+  "Invalid Cesium ID or password": "",
+  "copy pubkey v1": ""
 }

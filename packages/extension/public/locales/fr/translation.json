@@ -153,5 +153,11 @@
   "Import Account": "Importer",
   "Sign on Ledger": "Signer sur Ledger",
   "Allow use on any chain": "Toutes les blockchains",
-  "Select network": "Sélectionner un réseau"
+  "Select network": "Sélectionner un réseau",
+  "Import Cesium wallet": "Importer un portefeuille Cesium",
+  "Add the account with this Cesium ID": "Ajouter ce compte avec ces identifiants Cesium",
+  "Your Cesium wallet ID (Ğ1v1)": "Votre ID Cesium (Ğ1v1)",
+  "Your Cesium wallet password (Ğ1v1)": "Votre mot de passe Cesium (Ğ1v1)",
+  "Invalid Cesium ID or password": "ID ou mot de passe Cesium invalide",
+  "copy pubkey v1": "Copier l'adresse V1"
 }

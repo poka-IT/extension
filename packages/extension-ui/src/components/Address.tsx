@@ -14,7 +14,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
+import { base58Encode, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 import details from '../assets/details.svg';
 import { useMetadata, useOutsideClick, useToast, useTranslation } from '../hooks/index.js';
@@ -47,6 +47,7 @@ export interface Props {
 interface Recoded {
   account: AccountJson | null;
   formatted: string | null;
+  pubkeyV1: string | null;
   genesisHash?: string | null;
   prefix?: number;
   type: KeypairType;
@@ -72,6 +73,8 @@ function findAccountByAddress (accounts: AccountJson[], _address: string): Accou
 function recodeAddress (address: string, accounts: AccountWithChildren[], chain: Chain | null, settings: SettingsStruct): Recoded {
   // decode and create a shortcut for the encoded address
   const publicKey = decodeAddress(address);
+  const localPubkeyV1 = base58Encode(publicKey);
+
 
   // find our account using the actual publicKey, and then find the associated chain
   const account = findSubstrateAccount(accounts, publicKey);
@@ -83,6 +86,7 @@ function recodeAddress (address: string, accounts: AccountWithChildren[], chain:
     formatted: account?.type === 'ethereum'
       ? address
       : encodeAddress(publicKey, prefix),
+    pubkeyV1: localPubkeyV1,
     genesisHash: account?.genesisHash,
     prefix,
     type: account?.type || DEFAULT_TYPE
@@ -90,13 +94,13 @@ function recodeAddress (address: string, accounts: AccountWithChildren[], chain:
 }
 
 const ACCOUNTS_SCREEN_HEIGHT = 550;
-const defaultRecoded = { account: null, formatted: null, prefix: 42, type: DEFAULT_TYPE };
+const defaultRecoded = { account: null, formatted: null, pubkeyV1: null, prefix: 42, type: DEFAULT_TYPE };
 
 function Address ({ actions, address, children, className, genesisHash, isExternal, isHardware, isHidden, name, parentName, showVisibilityAction = false, suri, toggleActions, type: givenType }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const settings = useContext(SettingsContext);
-  const [{ account, formatted, genesisHash: recodedGenesis, prefix, type }, setRecoded] = useState<Recoded>(defaultRecoded);
+  const [{ account, formatted, pubkeyV1, genesisHash: recodedGenesis, prefix, type }, setRecoded] = useState<Recoded>(defaultRecoded);
   const chain = useMetadata(genesisHash || recodedGenesis, true);
 
   const [showActionsMenu, setShowActionsMenu] = useState(false);
@@ -120,7 +124,7 @@ function Address ({ actions, address, children, className, genesisHash, isExtern
         account?.type === 'ethereum' ||
         (!account && givenType === 'ethereum')
       )
-        ? { account, formatted: address, type: 'ethereum' }
+        ? { account, formatted: address, pubkeyV1, type: 'ethereum' }
         : recodeAddress(address, accounts, chain, settings)
     );
   }, [accounts, address, chain, givenType, settings]);
@@ -206,36 +210,29 @@ function Address ({ actions, address, children, className, genesisHash, isExtern
           value={formatted || address}
         />
         <div className='info'>
-          {parentName
-            ? (
-              <>
-                <div className='banner'>
-                  <FontAwesomeIcon
-                    className='deriveIcon'
-                    icon={faCodeBranch}
-                  />
-                  <div
-                    className='parentName'
-                    data-field='parent'
-                    title = {parentNameSuri}
-                  >
-                    {parentNameSuri}
-                  </div>
+          <div className='topRow'>
+            {parentName && (
+              <div className='banner'>
+                <FontAwesomeIcon className='deriveIcon' icon={faCodeBranch} />
+                <div className='parentName' data-field='parent' title={parentNameSuri}>
+                  {parentNameSuri}
                 </div>
-                <div className='name displaced'>
-                  <Name />
-                </div>
-              </>
-            )
-            : (
-              <div
-                className='name'
-                data-field='name'
-              >
-                <Name />
               </div>
-            )
-          }
+            )}
+            <div className={`name ${parentName ? 'displaced' : ''}`} data-field='name'>
+              <Name />
+            </div>
+            {(actions || showVisibilityAction) && (
+              <FontAwesomeIcon
+                className={isHidden ? 'hiddenIcon' : 'visibleIcon'}
+                icon={isHidden ? faEyeSlash : faEye}
+                onClick={_toggleVisibility}
+                size='sm'
+                title={t('account visibility')}
+                style={{ marginLeft: 'auto' }} // Ajout pour pousser l'icône à droite
+              />
+            )}
+          </div>
           {chain?.genesisHash && (
             <div
               className='banner chain'
@@ -249,14 +246,33 @@ function Address ({ actions, address, children, className, genesisHash, isExtern
               {chain.name.replace(' Relay Chain', '')}
             </div>
           )}
+          <div className='separator'></div> 
           <div className='addressDisplay'>
-            <div
-              className='fullAddress'
-              data-field='address'
-            >
-              {formatted || address || t('<unknown>')}
+          <div className='addressRow'>
+            <span className='addressLabel'>V1:</span>
+            <div className='fullAddress' data-field='address'>
+              {pubkeyV1 || t('<unknown>')}
             </div>
-            <CopyToClipboard text={(formatted && formatted) || ''}>
+          </div>
+            <CopyToClipboard text={pubkeyV1 || ''}>
+              <FontAwesomeIcon
+                className='copyIcon'
+                icon={faCopy}
+                onClick={_onCopy}
+                size='sm'
+                title={t('copy pubkey v1')}
+              />
+            </CopyToClipboard>
+          </div>
+          <div className='separator'></div> 
+          <div className='addressDisplay'>
+            <div className='addressRow'>
+              <span className='addressLabel'>V2:</span>
+              <div className='fullAddress' data-field='address'>
+                {formatted || address || t('<unknown>')}
+              </div>
+            </div>
+            <CopyToClipboard text={formatted || ''}>
               <FontAwesomeIcon
                 className='copyIcon'
                 icon={faCopy}
@@ -265,15 +281,6 @@ function Address ({ actions, address, children, className, genesisHash, isExtern
                 title={t('copy address')}
               />
             </CopyToClipboard>
-            {(actions || showVisibilityAction) && (
-              <FontAwesomeIcon
-                className={isHidden ? 'hiddenIcon' : 'visibleIcon'}
-                icon={isHidden ? faEyeSlash : faEye}
-                onClick={_toggleVisibility}
-                size='sm'
-                title={t('account visibility')}
-              />
-            )}
           </div>
         </div>
         {actions && (
@@ -312,6 +319,10 @@ export default styled(Address)<Props>`
   margin-bottom: 8px;
   position: relative;
 
+  .separator {
+    height: 5px;
+  }
+
   .banner {
     font-size: 12px;
     line-height: 16px;
@@ -345,9 +356,8 @@ export default styled(Address)<Props>`
     }
 
     .hiddenIcon, .visibleIcon {
-      position: absolute;
-      right: 2px;
-      top: -18px;
+      margin-left: auto; /* Cela pousse l'icône vers la droite */
+      margin-right: 20px; /* Cela assure qu'il y a 20px d'espace après l'icône */
     }
 
     .hiddenIcon {
@@ -383,7 +393,7 @@ export default styled(Address)<Props>`
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    height: 72px;
+    height: 90px;
     border-radius: 4px;
   }
 
@@ -401,10 +411,17 @@ export default styled(Address)<Props>`
     text-overflow: ellipsis;
     width: 300px;
     white-space: nowrap;
+    margin-right: auto;
 
     &.displaced {
       padding-top: 10px;
     }
+  }
+
+  .topRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .parentName {
@@ -418,14 +435,34 @@ export default styled(Address)<Props>`
     white-space: nowrap;
   }
 
+  .addressRow {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+  }
+  
+  .addressLabel {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--labelColor);
+    font-size: 12px;
+    line-height: 16px;
+    margin-right: 8px; /* Ajustez en fonction de l'espacement souhaité */
+  }
+  
   .fullAddress {
     overflow: hidden;
     text-overflow: ellipsis;
     color: var(--labelColor);
     font-size: 12px;
     line-height: 16px;
+    flex-grow: 1;
   }
-
+  
+  .copyIcon {
+    margin-left: 8px;
+  }
+  
   .detailsIcon {
     background: var(--accountDotsIconColor);
     width: 3px;

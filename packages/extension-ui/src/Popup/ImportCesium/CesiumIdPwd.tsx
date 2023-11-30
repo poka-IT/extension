@@ -39,6 +39,7 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
   const [genesis, setGenesis] = useState('');
   const [isWaitingDebounce, setIsWaitingDebounce] = useState(false);
   const operationIdRef = useRef(0);
+  const DEBOUNCE_TIME = 500;
 
  
   const debouncedValidateCesiumWallet = useCallback(debounce((csID, csPwd) => {
@@ -61,7 +62,7 @@ function CesiumIdPwd ({ className, onAccountChange, onNextStep, type }: Props): 
           setIsWaitingDebounce(false);
         }
       });
-    }, 600), [type, t, genesis, setIsWaitingDebounce]);
+    }, DEBOUNCE_TIME), [type, t, genesis, setIsWaitingDebounce]);
   
     useEffect(() => {
       if (!csID || !csPwd) {
