@@ -1,9 +1,9 @@
 {
-  "author": "polkafork.{js}",
+  "author": "Axiom-Team",
   "description": "Manage your Polkadot accounts outside of dapps. Injects the accounts and allows signing transactions for a specific account.",
   "homepage_url": "https://github.com/poka-IT/extension",
-  "name": "polkafork{.js} extension",
-  "short_name": "polkafork{.js}",
+  "name": "Duniter connect",
+  "short_name": "duniter-connect",
   "manifest_version": 2,
   "permissions": ["storage", "tabs"],
   "background": {
@@ -11,7 +11,7 @@
     "persistent": true
   },
   "browser_action": {
-    "default_title": "polkafork{.js}",
+    "default_title": "duniter-connect",
     "default_popup": "index.html"
   },
   "content_scripts": [{

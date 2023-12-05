@@ -113,7 +113,7 @@ function Header ({ children, className = '', onFilter, showAdd, showBackArrow, s
               />
             )
           }
-          <span className='logoText'>{text || 'polkafork{.js}'}</span>
+          <span className='logoText'>{text || 'duniter-connect'}</span>
         </div>
         {showSearch && (
           <div className={`searchBarWrapper ${isSearchOpen ? 'selected' : ''}`}>
